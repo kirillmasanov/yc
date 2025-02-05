@@ -65,6 +65,8 @@ dns       = "<your_domain_name>"
 ```
 terraform init
 ```
+State будет хранится в локальном backend в папке `/state`.
+
 5. Проверяем, какие ресурсы будут созданы:
 ```
 terraform plan
