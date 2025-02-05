@@ -1,7 +1,7 @@
 # Развертывание web-приложения в YC с помощью terraform
 
 ## Описание проекта
-Данный проект terraform развертывает web-приложение в Yandex Cloud с использованием Managed Service for Kubernetes, Application Load Balancer, Managed Service for MySQL и Container Registry. Приложение представляет собой Flask-сервис, который обрабатывает HTTP-запросы и отдаёт статические страницы с демо-контентом. Также реализовано логирование в управляемую базу данных MySQL.
+Данный проект terraform развертывает web-приложение в Yandex Cloud с использованием *Managed Service for Kubernetes*, *Application Load Balancer*, *Managed Service for MySQL* и *Container Registry*. Приложение представляет собой Flask-сервис, который обрабатывает HTTP-запросы и отдаёт статические страницы с демо-контентом. Также реализовано логирование в управляемую базу данных MySQL.
 
 ## Архитектура
 
@@ -14,7 +14,7 @@
 - *Managed Service for MySQL* — база данных для хранения логов запросов к web-приложению через балансировщик, а так же сообщений, записанных с помощью web-приложения.
 
 - *Cloud DNS* — привязка публичного доменного имени к сервису.
-![Image](https://github.com/user-attachments/assets/8390ed79-3b08-4585-8026-eff160aaf7ca)
+![Image](https://github.com/user-attachments/assets/60826a7c-c461-486d-8212-7c55d103ba24)
 
 ## Функционал
 
@@ -55,24 +55,24 @@ yc init
 git clone <репозиторий>
 cd <репозиторий>
 ```
-3. Создаем файл terraform.tfvars в корне каталога, с содержимым:
+2. Создаем файл `terraform.tfvars` в корне каталога, с содержимым:
 ```hcl
 cloud_id  = "<your_cloud_id>"
 folder_id = "<your_folder_id>"
 dns       = "<your_domain_name>"
 ```
-4. Инициализируем Terraform, предварительно [настроив](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#configure-provider) провайдер:
-```
+3. Инициализируем Terraform, предварительно [настроив](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#configure-provider) провайдер:
+```bash
 terraform init
 ```
 State будет хранится в локальном backend в папке `/state`.
 
 5. Проверяем, какие ресурсы будут созданы:
-```
+```bash
 terraform plan
 ```
-6. Развёртываем инфраструктуру:
-```
+6. Запускаем развертывание инфраструктуры в облаке:
+```bash
 terraform apply -auto-approve
 ```
 После выполнения команды Terraform создаст все необходимые ресурсы в облаке.
@@ -89,14 +89,14 @@ http://<dns_name>/page1.html
 http://<dns_name>/page2.html
 http://<dns_name>/write/<message>
 ```
-4. Подключаемся к базе данных MySQL, предвариетльно установив сертификат:
+4. Подключаемся к базе данных MySQL, предварительно установив сертификат на локальную машину:
 ```bash
 mkdir -p ~/.mysql && \
 wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" \
    --output-document ~/.mysql/root.crt && \
 chmod 0600 ~/.mysql/root.crt
 ```
-```
+```sql
 mysql --host=<hostname> --port=3306 --ssl-ca=~/.mysql/root.crt --ssl-mode=VERIFY_IDENTITY --user=john --password=password test-db
 ```
 где `hostname` - *FQDN* нашей БД (выводится *output*'ом после завершения работы *terraform*).
