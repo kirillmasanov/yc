@@ -54,15 +54,21 @@ yc init
 git clone <репозиторий>
 cd <репозиторий>
 ```
-2. Инициализируем Terraform, предварительно [настроив](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#configure-provider) провайдер:
+3. Создаем файл terraform.tfvars в корне каталога, с содержимым:
+```hcl
+cloud_id  = "<your_cloud_id>"
+folder_id = "<your_folder_id>"
+dns       = "<your_domain_name>"
+```
+4. Инициализируем Terraform, предварительно [настроив](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#configure-provider) провайдер:
 ```
 terraform init
 ```
-3. Проверяем, какие ресурсы будут созданы:
+1. Проверяем, какие ресурсы будут созданы:
 ```
 terraform plan
 ```
-4. Развёртываем инфраструктуру:
+1. Развёртываем инфраструктуру:
 ```
 terraform apply -auto-approve
 ```
