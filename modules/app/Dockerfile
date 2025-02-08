@@ -1,16 +1,3 @@
-# FROM python:3.9
-
-# WORKDIR /app
-# COPY app/requirements.txt .
-# RUN pip install -r requirements.txt
-
-# COPY app/app.py .
-
-# EXPOSE 8080
-# CMD ["python", "app.py"]
-
-
-# Используем более легковесный образ
 FROM python:3.9-slim
 
 # Устанавливаем зависимости для сборки
