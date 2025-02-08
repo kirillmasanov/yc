@@ -5,7 +5,7 @@ locals {
 resource "null_resource" "docker_push" {
   provisioner "local-exec" {
     command = <<EOT
-      docker build -t cr.yandex/${var.container_repository_name}:latest -f ./modules/app/Dockerfile ./modules/app/
+      docker build --platform=linux/amd64 -t cr.yandex/${var.container_repository_name}:latest -f ./modules/app/Dockerfile ./modules/app/
       docker push cr.yandex/${var.container_repository_name}:latest
     EOT
   }
