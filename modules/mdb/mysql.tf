@@ -9,9 +9,9 @@ locals {
 }
 
 resource "yandex_mdb_mysql_cluster" "mysql-alb-logging" {
-  name        = "test"
-  environment = "PRESTABLE"
-  network_id  = var.network_id
+  name               = "test"
+  environment        = "PRESTABLE"
+  network_id         = var.network_id
   version            = local.mysql_version
   security_group_ids = [yandex_vpc_security_group.mysql-security-group.id]
 
@@ -34,8 +34,8 @@ resource "yandex_mdb_mysql_cluster" "mysql-alb-logging" {
   }
 
   host {
-    zone      = var.zone
-    subnet_id = var.subnet_a_id
+    zone             = var.zone
+    subnet_id        = var.subnet_a_id
     assign_public_ip = true
   }
 }
@@ -97,14 +97,6 @@ resource "yandex_vpc_security_group" "mysql-security-group" {
     protocol       = "TCP"
     port           = 3306
     v4_cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol       = "ANY"
-    description    = "Ingress rule"
-    v4_cidr_blocks = ["0.0.0.0/0"]
-    from_port      = 1
-    to_port        = 65535
   }
 
   egress {
