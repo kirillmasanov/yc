@@ -8,10 +8,10 @@ resource "yandex_resourcemanager_folder_iam_member" "k8s_cluster_alb_roles" {
   folder_id = var.folder_id
 
   for_each = toset([
-    "alb.editor", # alb.editor — для создания необходимых ресурсов.
-    "vpc.publicAdmin", # для управления внешней связностью.
+    "alb.editor",                                  # alb.editor — для создания необходимых ресурсов.
+    "vpc.publicAdmin",                             # для управления внешней связностью.
     "certificate-manager.certificates.downloader", # для работы с сертификатами, зарегистрированными в сервисе Yandex Certificate Manager.
-    "compute.viewer", # для использования узлов кластера Managed Service for Kubernetes в целевых группах балансировщика.
+    "compute.viewer",                              # для использования узлов кластера Managed Service for Kubernetes в целевых группах балансировщика.
   ])
   role   = each.value
   member = "serviceAccount:${yandex_iam_service_account.k8s_cluster_alb.id}"
@@ -34,28 +34,28 @@ resource "kubernetes_namespace" "alb_ingress" {
   }
 }
 
+locals {
+  sa_key = jsonencode({
+    id                 = yandex_iam_service_account_key.k8s_cluster_alb.id
+    service_account_id = yandex_iam_service_account_key.k8s_cluster_alb.service_account_id
+    created_at         = yandex_iam_service_account_key.k8s_cluster_alb.created_at
+    key_algorithm      = yandex_iam_service_account_key.k8s_cluster_alb.key_algorithm
+    public_key         = yandex_iam_service_account_key.k8s_cluster_alb.public_key
+    private_key        = yandex_iam_service_account_key.k8s_cluster_alb.private_key
+  })
+}
+
 resource "kubernetes_secret" "yc_alb_ingress_controller_sa_key" {
   metadata {
     name      = "yc-alb-ingress-controller-sa-key"
     namespace = "alb-ingress"
   }
   data = {
-    "sa-key.json" = jsonencode(
-      {
-        "id" : yandex_iam_service_account_key.k8s_cluster_alb.id,
-        "service_account_id" : yandex_iam_service_account_key.k8s_cluster_alb.service_account_id,
-        "created_at" : yandex_iam_service_account_key.k8s_cluster_alb.created_at,
-        "key_algorithm" : yandex_iam_service_account_key.k8s_cluster_alb.key_algorithm,
-        "public_key" : yandex_iam_service_account_key.k8s_cluster_alb.public_key,
-        "private_key" : yandex_iam_service_account_key.k8s_cluster_alb.private_key
-      }
-    )
+    "sa-key.json" = local.sa_key
   }
-
   type = "kubernetes.io/Opaque"
-  depends_on = [
-    kubernetes_namespace.alb_ingress
-  ]
+
+  depends_on = [kubernetes_namespace.alb_ingress]
 }
 
 resource "helm_release" "alb_ingress" {
@@ -66,33 +66,34 @@ resource "helm_release" "alb_ingress" {
   version          = "v0.2.17"
   create_namespace = true
 
-  values = [
-    <<-EOF
-    folderId: ${var.folder_id}
-    clusterId: ${var.cluster_id}
-    daemonsetTolerations:
-      - operator: Exists
-    auth:
-      json: ${jsonencode(
-    {
-      "id" : yandex_iam_service_account_key.k8s_cluster_alb.id,
-      "service_account_id" : yandex_iam_service_account_key.k8s_cluster_alb.service_account_id,
-      "created_at" : yandex_iam_service_account_key.k8s_cluster_alb.created_at,
-      "key_algorithm" : yandex_iam_service_account_key.k8s_cluster_alb.key_algorithm,
-      "public_key" : yandex_iam_service_account_key.k8s_cluster_alb.public_key,
-      "private_key" : yandex_iam_service_account_key.k8s_cluster_alb.private_key
-    }
-)}
-  EOF
-]
+  set {
+    name  = "folderId"
+    value = var.folder_id
+  }
 
-depends_on = [
-  yandex_resourcemanager_folder_iam_member.k8s_cluster_alb_roles,
-  yandex_iam_service_account_key.k8s_cluster_alb,
-  kubernetes_namespace.alb_ingress,
-  kubernetes_secret.yc_alb_ingress_controller_sa_key,
-]
+  set {
+    name  = "clusterId"
+    value = var.cluster_id
+  }
+
+  set {
+    name  = "daemonsetTolerations[0].operator"
+    value = "Exists"
+  }
+
+  set_sensitive {
+    name  = "auth.json"
+    value = local.sa_key
+  }
+
+  depends_on = [
+    yandex_resourcemanager_folder_iam_member.k8s_cluster_alb_roles,
+    yandex_iam_service_account_key.k8s_cluster_alb,
+    kubernetes_namespace.alb_ingress,
+    kubernetes_secret.yc_alb_ingress_controller_sa_key,
+  ]
 }
+
 
 resource "yandex_vpc_security_group" "alb" {
   name        = "k8s-alb"
